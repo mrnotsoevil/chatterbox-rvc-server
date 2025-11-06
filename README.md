@@ -118,6 +118,34 @@ curl -X POST http://localhost:7779/v1/audio/speech \
   -d '{"model":"chatterbox_rvc","voice":"my_voice","input":"Voice fixed with RVC","rvc_index_rate":0.75}'
 ```
 
+## Benchmarks
+
+Using the cli's benchmark function
+
+```bash 
+python -m cli
+connect
+set-voice <voice>
+benchmark speed
+```
+
+### Hardware/Software
+
+* RTX 5070-Ti-SUPER 16GB (580.105.08, CUDA 13.0)
+* 5800X3D
+* 64 GB RAM
+* CachyOS Linux
+
+### Results
+
+Warmup (not counted) + 5 tests, lower is better.
+
+| Device | Avg     | Min     | Max     |
+|--------|---------|---------|---------|
+| GPU    | 2.386s  | 2.214s  | 2.631s  |
+| CPU    | 13.482s | 12.612s | 14.325s |
+
+
 ## Notes
 
 - The internal sample rate from Chatterbox is kept as‑is; the server resamples only for output.
