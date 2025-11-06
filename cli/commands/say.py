@@ -53,7 +53,9 @@ class SayCommand(BaseCommand):
                 self.console.print("[yellow]No model selected. Using default.[/yellow]")
                 model = "chatterbox_rvc"
             
-            self.console.print(f"[blue]Converting text to speech with voice: {voice}, model: {model}[/blue]")
+            # Get voice info for better display
+            voice_info = self.state.get_voice_info()
+            self.console.print(f"[blue]Converting text to speech with voice: {voice_info['current_voice_name']} (ID: {voice}), model: {model}[/blue]")
             
             # Generate speech
             audio_data = await self.http_client.generate_speech(text, voice, model)

@@ -147,7 +147,7 @@ def _scan_voices() -> Tuple[List[dict], Dict[str, VoiceInfo]]:
             continue
         rvc_pth = _first_with_suffix(sub, (".pth",))
         rvc_index = _first_with_suffix(sub, (".index", ".faiss", ".idx"))
-        vid = f"voices/{name}"
+        vid = f"{name}"
         vi = VoiceInfo(name=name, id=vid, prompt=prompt, rvc_pth=rvc_pth, rvc_index=rvc_index)
         voices_json.append({"id": vid, "name": name})
         # Lookup by lowercase name or id

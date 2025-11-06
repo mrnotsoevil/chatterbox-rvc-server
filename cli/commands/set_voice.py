@@ -12,9 +12,10 @@ from ..state import AppState
 class SetVoiceCommand(BaseCommand):
     """Set the current voice"""
     
-    def __init__(self, console: Console, state : AppState):
+    def __init__(self, console: Console, state: AppState, http_client=None):
         super().__init__(console)
         self.state = state
+        self.http_client = http_client
     
     def get_name(self) -> str:
         return "set-voice"
@@ -37,11 +38,14 @@ class SetVoiceCommand(BaseCommand):
         
         try:
             self.validate_args(args_list, 1, 1)
-            voice_name = args_list[0]
+            voice_input = args_list[0]
             
-            # Set the voice in state
-            self.state.set_voice(voice_name)
-            self.console.print(f"[green]Voice set to: {voice_name}[/green]")
+            # Set the voice in state (with automatic voice fetching)
+            await self.state.set_voice(voice_input, self.http_client)
+            
+            # Get voice info for better feedback
+            voice_info = self.state.get_voice_info()
+            self.console.print(f"[green]Voice set to: {voice_info['current_voice_name']} (ID: {voice_info['current_voice']})[/green]")
             
         except ValueError as e:
             self.console.print(f"[red]Error: {e}[/red]")

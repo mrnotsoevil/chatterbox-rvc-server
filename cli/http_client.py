@@ -91,3 +91,29 @@ class HTTPClient:
                 return await response.json()
         except aiohttp.ClientError as e:
             raise ConnectionError(f"Failed to get server info: {e}")
+    
+    async def generate_speech(self, text: str, voice: str, model: str,
+                            format: str = "wav", sample_rate: int = 24000) -> bytes:
+        """Generate speech using the text-to-speech API"""
+        if not self.session:
+            raise CLIError("HTTP client not initialized")
+        
+        request_data = {
+            "model": model,
+            "voice": voice,
+            "input": text,
+            "format": format,
+            "sample_rate": sample_rate
+        }
+        
+        try:
+            async with self.session.post(
+                f"{self.base_url}/v1/audio/speech",
+                json=request_data
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise CLIError(f"Speech synthesis failed: {response.status} - {error_text}")
+                return await response.read()
+        except aiohttp.ClientError as e:
+            raise ConnectionError(f"Speech synthesis failed: {e}")

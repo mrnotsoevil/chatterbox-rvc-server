@@ -7,7 +7,7 @@ import platform
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from .exceptions import AudioError
 
 
@@ -16,6 +16,7 @@ class AudioPlayer:
     
     def __init__(self):
         self.platform = platform.system().lower()
+        self.temp_dir = tempfile.gettempdir()
     
     async def play_audio(self, audio_path: str, volume: float = 1.0):
         """Play audio file"""
@@ -103,6 +104,44 @@ class AudioPlayer:
             raise AudioError("No audio playback method available. Please install audio dependencies.")
         except Exception as e:
             raise AudioError(f"Python fallback playback failed: {e}")
+    
+    async def play(self, audio_data: Union[str, bytes], volume: float = 1.0):
+        """Play audio from file path or bytes data
+        
+        Args:
+            audio_data: Either file path (str) or audio data (bytes)
+            volume: Volume level (0.0 to 1.0)
+        """
+        if isinstance(audio_data, str):
+            # It's a file path
+            await self.play_audio(audio_data, volume)
+        elif isinstance(audio_data, bytes):
+            # It's audio data, save to temp file and play
+            await self._play_from_bytes(audio_data, volume)
+        else:
+            raise AudioError(f"Invalid audio data type: {type(audio_data)}")
+    
+    async def _play_from_bytes(self, audio_data: bytes, volume: float):
+        """Play audio from bytes data by saving to temp file"""
+        try:
+            # Create a temporary file
+            temp_file = Path(self.temp_dir) / f"audio_{hash(audio_data)}.wav"
+            
+            # Write audio data to temp file
+            with open(temp_file, 'wb') as f:
+                f.write(audio_data)
+            
+            # Play the temp file
+            await self.play_audio(str(temp_file), volume)
+            
+            # Clean up temp file
+            try:
+                temp_file.unlink()
+            except OSError:
+                pass  # Ignore cleanup errors
+                
+        except Exception as e:
+            raise AudioError(f"Failed to play audio from bytes: {e}")
     
     def get_supported_formats(self) -> list:
         """Get list of supported audio formats"""

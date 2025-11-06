@@ -34,17 +34,46 @@ class ListVoicesCommand(BaseCommand):
     
     async def execute(self, args: dict):
         try:
-            voices = await self.http_client.get_voices()
-            print(voices)
+            # Check if we have voices in state, if not fetch from server
+            if not self.state.voice.available_voices:
+                self.console.print("[yellow]Loading voices from server...[/yellow]")
+                voices_response = await self.http_client.get_voices()
+                
+                # Update state with fresh voices
+                models = self.state.model.available_models or {}  # Keep existing models
+                self.state.update_server_info(models, voices_response)
             
-            if not voices:
+            # Get voices from state
+            available_voices = self.state.voice.available_voices
+            
+            if not available_voices:
                 self.console.print("[yellow]No voices found.[/yellow]")
                 return
             
             self.console.print("Available Voices:")
-            for voice in voices:
-                status = "[green]✓[/green]" if voice.get("available", True) else "[red]✗[/red]"
-                self.console.print(f"  {status} {voice.get('name', 'Unknown')} - {voice.get('description', 'No description')}")
+            for voice_id, voice_name in available_voices.items():
+                # Try to get more detailed info if available
+                voice_info = None
+                try:
+                    voices_response = await self.http_client.get_voices()
+                    if isinstance(voices_response, dict) and 'voices' in voices_response:
+                        for voice in voices_response['voices']:
+                            if voice.get('id') == voice_id:
+                                voice_info = voice
+                                break
+                except:
+                    pass  # Ignore errors when getting detailed info
+                
+                if voice_info:
+                    description = voice_info.get('description', 'No description')
+                    available = voice_info.get('available', True)
+                else:
+                    description = 'No description'
+                    available = True
+                
+                status = "[green]✓[/green]" if available else "[red]✗[/red]"
+                current_marker = " [cyan](current)[/cyan]" if voice_id == self.state.voice.current_voice else ""
+                self.console.print(f"  {status} {voice_name} [dim]({voice_id}){current_marker}[/dim] - {description}")
                 
         except CLIError as e:
             self.console.print(f"[red]Error: {e}[/red]")

@@ -52,7 +52,7 @@ class CLIApp:
             ConnectCommand(self.console, self.http_client, self.state),
             ListModelsCommand(self.console, self.http_client, self.state),
             ListVoicesCommand(self.console, self.http_client, self.state),
-            SetVoiceCommand(self.console, self.state),
+            SetVoiceCommand(self.console, self.state, self.http_client),
             SetModelCommand(self.console, self.state),
             GetVoiceCommand(self.console, self.state),
             GetModelCommand(self.console, self.state),

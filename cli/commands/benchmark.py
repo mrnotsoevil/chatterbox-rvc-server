@@ -66,6 +66,13 @@ class BenchmarkCommand(BaseCommand):
         voice = self.state.voice.current_voice or "default"
         model = self.state.model.current_model or "default"
         
+        # Get voice info for better display
+        voice_info = self.state.get_voice_info()
+        if voice_info['current_voice_name']:
+            self.console.print(f"[blue]Running speed benchmark with voice: {voice_info['current_voice_name']} (ID: {voice}), model: {model}[/blue]")
+        else:
+            self.console.print(f"[blue]Running speed benchmark with voice: {voice}, model: {model}[/blue]")
+        
         # Warm up
         try:
             await self.http_client.generate_speech("Warm up", voice, model)
@@ -108,6 +115,13 @@ class BenchmarkCommand(BaseCommand):
         
         voice = self.state.voice.current_voice or "default"
         model = self.state.model.current_model or "default"
+        
+        # Get voice info for better display
+        voice_info = self.state.get_voice_info()
+        if voice_info['current_voice_name']:
+            self.console.print(f"[blue]Running quality benchmark with voice: {voice_info['current_voice_name']} (ID: {voice}), model: {model}[/blue]")
+        else:
+            self.console.print(f"[blue]Running quality benchmark with voice: {voice}, model: {model}[/blue]")
         
         quality_scores = []
         

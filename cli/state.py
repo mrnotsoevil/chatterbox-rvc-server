@@ -103,15 +103,76 @@ class AppState:
             self.voice.current_voice is not None
         )
 
-    def update_server_info(self, models: Dict[str, str], voices: Dict[str, str]):
+    def update_server_info(self, models: Dict[str, str], voices_response: Any):
         """Update server information"""
+        # Handle models (simple dict)
         self.model.available_models = models
-        self.voice.available_voices = voices
+        
+        # Handle voices (can be dict with 'voices' key or list)
+        if isinstance(voices_response, dict) and 'voices' in voices_response:
+            voices_list = voices_response['voices']
+        elif isinstance(voices_response, list):
+            voices_list = voices_response
+        else:
+            voices_list = []
+        
+        # Convert voices list to dict format {id: name}
+        self.voice.available_voices = {}
+        for voice in voices_list:
+            if isinstance(voice, dict):
+                voice_id = voice.get('id')
+                voice_name = voice.get('name', voice_id)
+                if voice_id:
+                    self.voice.available_voices[voice_id] = voice_name or voice_id
+        
         self.model.last_updated = datetime.now()
         self.voice.last_updated = datetime.now()
 
         # Set defaults if available
         if models and not self.model.current_model:
             self.model.current_model = next(iter(models.keys()))
-        if voices and not self.voice.current_voice:
-            self.voice.current_voice = next(iter(voices.keys()))
+        if self.voice.available_voices and not self.voice.current_voice:
+            self.voice.current_voice = next(iter(self.voice.available_voices.keys()))
+    
+    async def set_voice(self, voice_input: str, http_client=None) -> None:
+        """Set the current voice by ID or name
+        
+        Args:
+            voice_input: Voice ID or name to set as current voice
+            http_client: Optional HTTP client to fetch voices if not available
+        """
+        # If we don't have voices and have an http_client, try to fetch them
+        if not self.voice.available_voices and http_client:
+            try:
+                voices_response = await http_client.get_voices()
+                models = self.model.available_models or {}
+                self.update_server_info(models, voices_response)
+            except Exception as e:
+                # If fetching fails, continue with available voices (empty)
+                pass
+        
+        # If voice_input is already a valid ID, use it directly
+        if voice_input in self.voice.available_voices:
+            self.voice.current_voice = voice_input
+            return
+        
+        # If voice_input is a name, find the corresponding ID
+        for voice_id, voice_name in self.voice.available_voices.items():
+            if voice_name == voice_input:
+                self.voice.current_voice = voice_id
+                return
+        
+        # If not found, raise an error
+        available_voices_list = [f"{vid} ({name})" for vid, name in self.voice.available_voices.items()]
+        raise ValueError(f"Voice '{voice_input}' not found. Available voices: {', '.join(available_voices_list) or 'None'}")
+    
+    def get_voice_info(self) -> Dict[str, Any]:
+        """Get current voice information"""
+        if not self.voice.current_voice:
+            return {"current_voice": None, "current_voice_name": None}
+        
+        current_name = self.voice.available_voices.get(self.voice.current_voice, "Unknown")
+        return {
+            "current_voice": self.voice.current_voice,
+            "current_voice_name": current_name
+        }
