@@ -42,8 +42,8 @@ class SayCommand(BaseCommand):
             text = ' '.join(args_list)
             
             # Get current voice and model from state
-            voice = self.state.get_voice()
-            model = self.state.get_model()
+            voice = self.state.voice.current_voice
+            model = self.state.model.current_model
             
             if not voice:
                 self.console.print("[yellow]No voice selected. Using default.[/yellow]")
@@ -51,7 +51,7 @@ class SayCommand(BaseCommand):
             
             if not model:
                 self.console.print("[yellow]No model selected. Using default.[/yellow]")
-                model = "default"
+                model = "chatterbox_rvc"
             
             self.console.print(f"[blue]Converting text to speech with voice: {voice}, model: {model}[/blue]")
             

@@ -35,6 +35,7 @@ class ListVoicesCommand(BaseCommand):
     async def execute(self, args: dict):
         try:
             voices = await self.http_client.get_voices()
+            print(voices)
             
             if not voices:
                 self.console.print("[yellow]No voices found.[/yellow]")

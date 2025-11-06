@@ -39,7 +39,7 @@ class VoiceSettings:
 @dataclass
 class ModelSettings:
     """Model settings management"""
-    current_model: Optional[str] = None
+    current_model: Optional[str] = "chatterbox_rvc"
     available_models: Dict[str, str] = field(default_factory=dict)
     last_updated: Optional[datetime] = None
 

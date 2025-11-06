@@ -33,7 +33,7 @@ class GetVoiceCommand(BaseCommand):
     
     async def execute(self, args: dict):
         try:
-            current_voice = self.state.get_voice()
+            current_voice = self.state.voice.current_voice
             if current_voice:
                 self.console.print(f"Current voice: {current_voice}")
             else:
