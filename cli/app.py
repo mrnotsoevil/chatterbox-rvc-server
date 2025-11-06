@@ -88,11 +88,13 @@ class CLIApp:
                 except Exception as e:
                     self.console.print(f"[red]Error: {e}[/red]")
     
-    async def _get_user_input(self, prompt_text: str) -> str:
+    async def _get_user_input(self, prompt_text: Text) -> str:
         """Get user input with proper prompt formatting"""
+        # Convert Rich Text to plain string for input prompt
+        prompt_str = str(prompt_text)
         return await asyncio.get_event_loop().run_in_executor(
-            None, 
-            lambda: input(f"\n{prompt_text}")
+            None,
+            lambda: input(f"\n{prompt_str}")
         )
     
     async def _execute_command(self, command_input: str):

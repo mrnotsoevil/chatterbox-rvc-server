@@ -31,8 +31,7 @@ class BenchmarkCommand(BaseCommand):
             description="Run performance benchmarks on the server.",
             examples=[
                 "benchmark",
-                "benchmark speed",
-                "benchmark quality"
+                "benchmark speed"
             ]
         )
     
@@ -40,16 +39,12 @@ class BenchmarkCommand(BaseCommand):
         args_list = args.get('args', [])
         
         try:
-            test_type = args_list[0].lower() if args_list else "all"
+            test_type = args_list[0].lower() if args_list else "speed"
             
             if test_type in ["all", "speed"]:
                 await self._benchmark_speed()
-            
-            if test_type in ["all", "quality"]:
-                await self._benchmark_quality()
-                
-            if test_type not in ["all", "speed", "quality"]:
-                self.console.print(f"[red]Unknown benchmark type: {test_type}. Use 'speed', 'quality', or 'all'.[/red]")
+            else:
+                self.console.print(f"[red]Unknown benchmark type: {test_type}. Use 'speed' or 'all'.[/red]")
                 
         except ValueError as e:
             self.console.print(f"[red]Error: {e}[/red]")
@@ -103,58 +98,3 @@ class BenchmarkCommand(BaseCommand):
         else:
             self.console.print("[red]No successful speed tests completed.[/red]")
     
-    async def _benchmark_quality(self):
-        """Benchmark audio quality"""
-        self.console.print("Running quality benchmark...")
-        
-        test_texts = [
-            "Short test.",
-            "This is a medium length sentence for testing audio quality.",
-            "This is a much longer sentence that should test the quality of the text-to-speech synthesis across different voice models and configurations."
-        ]
-        
-        voice = self.state.voice.current_voice or "default"
-        model = self.state.model.current_model or "default"
-        
-        # Get voice info for better display
-        voice_info = self.state.get_voice_info()
-        if voice_info['current_voice_name']:
-            self.console.print(f"[blue]Running quality benchmark with voice: {voice_info['current_voice_name']} (ID: {voice}), model: {model}[/blue]")
-        else:
-            self.console.print(f"[blue]Running quality benchmark with voice: {voice}, model: {model}[/blue]")
-        
-        quality_scores = []
-        
-        for i, text in enumerate(test_texts):
-            try:
-                self.console.print(f"[blue]Testing quality with text {i+1}/{len(test_texts)}...[/blue]")
-                
-                start_time = time.time()
-                audio_data = await self.http_client.generate_speech(text, voice, model)
-                end_time = time.time()
-                
-                if audio_data:
-                    # Simple quality assessment based on response time and data size
-                    response_time = end_time - start_time
-                    data_size = len(audio_data) if audio_data else 0
-                    
-                    # Calculate a simple quality score (this is a placeholder)
-                    quality_score = min(100, max(0, 100 - (response_time * 10) + (data_size / 1000)))
-                    quality_scores.append(quality_score)
-                    
-                    self.console.print(f"  Response time: {response_time:.3f}s")
-                    self.console.print(f"  Data size: {data_size} bytes")
-                    self.console.print(f"  Estimated quality score: {quality_score:.1f}/100")
-                else:
-                    self.console.print(f"[yellow]No audio data returned for test {i+1}[/yellow]")
-                    
-            except Exception as e:
-                self.console.print(f"[yellow]Quality test {i+1} failed: {e}[/yellow]")
-        
-        if quality_scores:
-            avg_quality = sum(quality_scores) / len(quality_scores)
-            self.console.print(f"[green]Quality Benchmark Results:[/green]")
-            self.console.print(f"  Average quality score: {avg_quality:.1f}/100")
-            self.console.print(f"  Tests completed: {len(quality_scores)}/{len(test_texts)}")
-        else:
-            self.console.print("[red]No successful quality tests completed.[/red]")

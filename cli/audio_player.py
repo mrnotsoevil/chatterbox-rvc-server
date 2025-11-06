@@ -52,6 +52,7 @@ class AudioPlayer:
     async def _play_macos(self, audio_path: str, volume: float):
         """Play audio on macOS using afplay"""
         try:
+            # Use afplay with volume control if possible
             subprocess.run(['afplay', audio_path], check=True, timeout=10)
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
             await self._play_python_fallback(audio_path)
@@ -59,7 +60,7 @@ class AudioPlayer:
     async def _play_windows(self, audio_path: str, volume: float):
         """Play audio on Windows using PowerShell"""
         try:
-            # Use PowerShell to play audio
+            # Use PowerShell to play audio with better error handling
             ps_command = f"""
             Add-Type -TypeDefinition @"
             using System;
@@ -71,8 +72,7 @@ class AudioPlayer:
 "@;
             $audio = New-Object Audio;
             $audio.mciSendString("open \"{audio_path}\" type mpegvideo alias media", $null, 0, $null);
-            $audio.mciSendString("play media", $null, 0, $null);
-            Start-Sleep -Seconds 5;  # Adjust as needed
+            $audio.mciSendString("play media wait", $null, 0, $null);
             $audio.mciSendString("close media", $null, 0, $null);
             """
             
@@ -81,7 +81,7 @@ class AudioPlayer:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )
-            process.communicate(timeout=10)
+            process.communicate(timeout=30)  # Increased timeout for longer audio
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
             await self._play_python_fallback(audio_path)
     
@@ -101,7 +101,18 @@ class AudioPlayer:
             
             pygame.mixer.quit()
         except ImportError:
-            raise AudioError("No audio playback method available. Please install audio dependencies.")
+            try:
+                # Try to use simpleaudio if pygame is not available
+                import simpleaudio
+                with open(audio_path, 'rb') as f:
+                    audio_data = f.read()
+                wave_obj = simpleaudio.WaveObject.from_wave_file(audio_path)
+                play_obj = wave_obj.play()
+                play_obj.wait_done()
+            except ImportError:
+                raise AudioError("No audio playback method available. Please install audio dependencies (pygame or simpleaudio).")
+            except Exception as e:
+                raise AudioError(f"SimpleAudio fallback playback failed: {e}")
         except Exception as e:
             raise AudioError(f"Python fallback playback failed: {e}")
     
@@ -145,8 +156,55 @@ class AudioPlayer:
     
     def get_supported_formats(self) -> list:
         """Get list of supported audio formats"""
-        return ['wav', 'flac', 'ogg', 'mp3']
+        return ['wav', 'flac', 'ogg', 'mp3', 'm4a', 'aac']
     
     def is_format_supported(self, format_name: str) -> bool:
         """Check if format is supported"""
         return format_name.lower() in self.get_supported_formats()
+    
+    def get_platform_info(self) -> dict:
+        """Get platform-specific audio information"""
+        return {
+            "platform": self.platform,
+            "supported_formats": self.get_supported_formats(),
+            "available_methods": self._get_available_methods()
+        }
+    
+    def _get_available_methods(self) -> list:
+        """Get list of available audio playback methods"""
+        methods = []
+        
+        # Check system methods
+        if self.platform == "linux":
+            if self._command_exists("aplay"):
+                methods.append("aplay")
+            if self._command_exists("paplay"):
+                methods.append("paplay")
+        elif self.platform == "darwin":
+            if self._command_exists("afplay"):
+                methods.append("afplay")
+        elif self.platform == "windows":
+            methods.append("powershell")
+        
+        # Check Python methods
+        try:
+            import pygame
+            methods.append("pygame")
+        except ImportError:
+            pass
+        
+        try:
+            import simpleaudio
+            methods.append("simpleaudio")
+        except ImportError:
+            pass
+        
+        return methods
+    
+    def _command_exists(self, command: str) -> bool:
+        """Check if a command exists on the system"""
+        try:
+            subprocess.run(['which', command], check=True, capture_output=True)
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return False

@@ -26,25 +26,30 @@ class UIComponents:
         
         self.console.print(Panel(welcome_text, title="Welcome", border_style="blue"))
     
-    def get_prompt(self) -> str:
+    def get_prompt(self) -> Text:
         """Get command prompt with current status"""
         status = self.state.get_status_summary()
         
-        # Build status indicator
-        status_parts = []
+        # Build status indicator using Rich Text
+        prompt_text = Text()
+        
         if status['connected']:
-            status_parts.append(f"[green]●[/green] {status['server_url']}")
+            prompt_text.append("●", style="green")
+            prompt_text.append(f" {status['server_url']} | ", style="green")
         else:
-            status_parts.append(f"[red]●[/red] disconnected")
+            prompt_text.append("●", style="red")
+            prompt_text.append(" disconnected | ", style="red")
         
         if status['current_voice']:
-            status_parts.append(f"[cyan]🎤[/cyan] {status['current_voice']}")
+            prompt_text.append("🎤", style="cyan")
+            prompt_text.append(f" {status['current_voice']} | ", style="cyan")
         
         if status['current_model']:
-            status_parts.append(f"[yellow]📝[/yellow] {status['current_model']}")
+            prompt_text.append("📝", style="yellow")
+            prompt_text.append(f" {status['current_model']} | ", style="yellow")
         
-        status_str = " | ".join(status_parts)
-        return f"{status_str} > "
+        prompt_text.append("> ", style="bold")
+        return prompt_text
     
     def show_progress(self, message: str):
         """Show progress indicator"""
