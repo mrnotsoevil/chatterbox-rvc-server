@@ -353,6 +353,7 @@ def audio_speech(req: SpeechRequest):
     if not text:
         raise HTTPException(status_code=400, detail="Field 'input' (text) is empty.")
 
+    start_time = time.time()
     print("[i] New request")
     print(" - text: ", text)
     print(" - model: ", req.model)
@@ -430,6 +431,10 @@ def audio_speech(req: SpeechRequest):
         "X-RVC-Applied": "1" if applied_rvc else "0",
         "X-Chatterbox-SR": str(tts_sr),
     }
+
+    end_time = time.time()
+    print(" -> Took ", end_time - start_time)
+
     return Response(content=payload, media_type=mime, headers=headers)
 
 
