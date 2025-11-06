@@ -137,7 +137,7 @@ benchmark speed
 
 * RTX 5070-Ti-SUPER 16GB (580.105.08, CUDA 13.0)
 * 5800X3D
-* 64 GB RAM
+* 64 GB RAM (DDR4, 3200 MHz)
 * CachyOS Linux
 
 ### Results
