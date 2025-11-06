@@ -1,0 +1,7 @@
+*.pth
+*.pt
+*.bin
+*.index
+*.wav
+.chattervc_cache/**
+build

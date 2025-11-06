@@ -1,0 +1,43 @@
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chatterbox-openai-tts-server"
+version = "0.1.0"
+description = "Standalone OpenAI-compatible TTS server for SillyTavern using Chatterbox + optional RVC"
+readme = "README_chatterbox_tts.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Local User"}]
+keywords = ["chatterbox", "rvc", "tts", "sillytavern", "openai-compatible", "fastapi"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+dependencies = [
+  "fastapi>=0.110.0",
+  "uvicorn[standard]>=0.29.0",
+  "numpy>=1.23",
+  "soundfile>=0.12",
+  "librosa>=0.10",
+  "torch>=2.2",
+  "torchaudio>=2.2",
+  "chatterbox-tts>=0.1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourname/chatterbox-openai-tts-server"
+
+[tool.setuptools]
+py-modules = ["chatterbox_openai_tts_server"]
+
+[project.scripts]
+chatterbox-tts = "chatterbox_openai_tts_server:main"
