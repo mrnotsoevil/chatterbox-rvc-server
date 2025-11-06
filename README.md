@@ -144,6 +144,8 @@ benchmark speed
 
 Warmup (not counted) + 5 tests, lower is better.
 
+Tested input: `This is a test sentence for benchmarking.`
+
 | Device | Avg     | Min     | Max     |
 |--------|---------|---------|---------|
 | GPU    | 2.386s  | 2.214s  | 2.631s  |
