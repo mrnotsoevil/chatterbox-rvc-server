@@ -42,7 +42,7 @@ pip install -r requirements.txt
 ## Run
 
 ```bash
-python server.py
+python -m server
 # Serves on http://0.0.0.0:7779 by default
 ```
 
