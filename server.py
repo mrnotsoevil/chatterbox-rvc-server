@@ -66,6 +66,9 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from rvc.lib.tools.prerequisites_download import prequisites_download_pipeline
+from rvc.lib.tools.model_download import model_download_pipeline
+
 # --- Audio utils ---
 try:
     import soundfile as sf
@@ -431,6 +434,17 @@ def audio_speech(req: SpeechRequest):
 
 
 def main():
+    # Download all models
+    print("[i] Download prerequisites ...")
+    prequisites_download_pipeline(
+                pretraineds_hifigan=True,
+                models=True,
+                exe=True,
+            )
+    print("[i] Download prerequisites ... done")
+
+    # Start server
+    print("[i] Starting server ...")
     import uvicorn
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", "7779"))

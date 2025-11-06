@@ -3,5 +3,6 @@
 *.bin
 *.index
 *.wav
+*.pyc
 .chattervc_cache/**
 build
