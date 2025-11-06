@@ -63,6 +63,10 @@ python chattervc_openai_tts_server.py
 - **Model:** Either `chatterbox` or `chatterbox_rvc`
 - **Available voices:** Folder names within the `voices` directory
 
+## Training RVC
+
+I recommend to use [Applio](https://github.com/IAHispano/Applio) for training and following their provided guidelines.
+
 ## OpenAI API
 
 - `GET /v1/audio/models` → `{"models":[{"id":"chatterbox"},{"id":"chatterbox_rvc"}]}`
