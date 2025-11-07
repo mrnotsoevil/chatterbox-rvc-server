@@ -6,13 +6,14 @@ import aiohttp
 import asyncio
 from typing import Dict, Any, Optional
 from .exceptions import ConnectionError, CLIError
+from .state import AppState
 
 
 class HTTPClient:
     """HTTP client for server communication"""
     
-    def __init__(self, base_url: str):
-        self.base_url = base_url.rstrip('/')
+    def __init__(self, state: AppState):
+        self.state = state
         self.session: Optional[aiohttp.ClientSession] = None
     
     async def __aenter__(self):
@@ -29,7 +30,7 @@ class HTTPClient:
             raise CLIError("HTTP client not initialized")
         
         try:
-            async with self.session.get(f"{self.base_url}/health") as response:
+            async with self.session.get(f"{self.state.connection.server_url}/health") as response:
                 if response.status != 200:
                     raise ConnectionError(f"Health check failed: {response.status}")
                 return await response.json()
@@ -42,7 +43,7 @@ class HTTPClient:
             raise CLIError("HTTP client not initialized")
         
         try:
-            async with self.session.get(f"{self.base_url}/v1/audio/models") as response:
+            async with self.session.get(f"{self.state.connection.server_url}/v1/audio/models") as response:
                 if response.status != 200:
                     raise CLIError(f"Failed to get models: {response.status}")
                 return await response.json()
@@ -55,7 +56,7 @@ class HTTPClient:
             raise CLIError("HTTP client not initialized")
         
         try:
-            async with self.session.get(f"{self.base_url}/v1/audio/voices") as response:
+            async with self.session.get(f"{self.state.connection.server_url}/v1/audio/voices") as response:
                 if response.status != 200:
                     raise CLIError(f"Failed to get voices: {response.status}")
                 return await response.json()
@@ -69,7 +70,7 @@ class HTTPClient:
         
         try:
             async with self.session.post(
-                f"{self.base_url}/v1/audio/speech",
+                f"{self.state.connection.server_url}/v1/audio/speech",
                 json=request_data
             ) as response:
                 if response.status != 200:
@@ -85,7 +86,7 @@ class HTTPClient:
             raise CLIError("HTTP client not initialized")
         
         try:
-            async with self.session.get(f"{self.base_url}/") as response:
+            async with self.session.get(f"{self.state.connection.server_url}/") as response:
                 if response.status != 200:
                     raise CLIError(f"Failed to get server info: {response.status}")
                 return await response.json()
@@ -108,7 +109,7 @@ class HTTPClient:
         
         try:
             async with self.session.post(
-                f"{self.base_url}/v1/audio/speech",
+                f"{self.state.connection.server_url}/v1/audio/speech",
                 json=request_data
             ) as response:
                 if response.status != 200:

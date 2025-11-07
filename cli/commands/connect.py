@@ -43,9 +43,20 @@ class ConnectCommand(BaseCommand):
         # Parse connection string
         if args_list:
             connection_string = args_list[0]
-            if ':' not in connection_string:
-                raise CLIError(f"Invalid connection format: {connection_string}")
-            server_url = f"http://{connection_string}"
+            if not connection_string.startswith("http://") and not connection_string.startswith("https://"):
+                connection_string = "http://" + connection_string
+            host = "localhost"
+            port = 7779
+
+            items = connection_string.split(":")
+            if len(items) > 2:
+                host = ":".join(items[0:-1])
+                port = int(items[-1])
+            else:
+                host = connection_string
+                self.console.print("Using standard port 7779")
+
+            server_url = f"{host}:{port}"
         else:
             server_url = "http://localhost:7779"
         

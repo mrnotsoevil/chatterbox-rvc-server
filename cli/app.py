@@ -26,7 +26,7 @@ class CLIApp:
         self.config = config
         self.console = Console()
         self.state = AppState()
-        self.http_client = HTTPClient(config.server_url)
+        self.http_client = HTTPClient(self.state)
         self.audio_player = AudioPlayer()
         self.command_registry = CommandRegistry()
         self.ui = UIComponents(self.console, self.state)
